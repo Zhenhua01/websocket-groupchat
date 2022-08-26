@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "*",
+    "axios": "^0.27.2",
     "express": "^4.16.4",
     "express-ws": "*",
     "socket.io": "*"

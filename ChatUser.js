@@ -5,6 +5,8 @@
 // Room is an abstraction of a chat channel
 const Room = require("./Room");
 
+const axios = require("axios")
+
 /** ChatUser is a individual connection from client -> server to chat. */
 
 class ChatUser {
@@ -72,22 +74,26 @@ class ChatUser {
    * </code>
    */
 
-  handleMessage(jsonData) {
+  async handleMessage(jsonData) {
     let msg = JSON.parse(jsonData);
 
     if (msg.type === "join") this.handleJoin(msg.name);
     else if (msg.type === "chat") this.handleChat(msg.text);
-    else if (msg.type === "joke") this.handleJoke();
+    else if (msg.type === "joke") await this.handleJoke();
     else if (msg.type === "members") this.handleMembers();
     else if (msg.type === "priv") this.handlePrivateMsg(msg.text);
-
+    else if (msg.type === "name") this.handleNameChange(msg.text);
+    
     else throw new Error(`bad message: ${msg.type}`);
   }
 
   /** */
 
-  handleJoke() {
-    const joke = "this is a joke";
+  async handleJoke() {
+    //FIXME: fix the api call to get a random joke
+    // const result = await axios.get('https://icanhazdadjoke.com/', {header: {Accept: "text/plain"}})
+    // const joke = result.data
+    const joke = "This is a joke"
     this.send(JSON.stringify({
       name: "Server",
       type: "chat",
@@ -134,6 +140,17 @@ class ChatUser {
       type: "chat",
       text: message
     }));
+  }
+
+  handleNameChange (text){
+    const data = text.split(" ");
+    const newUsername = data[1];
+    const oldName = this.name
+    this.name = newUsername;
+    this.room.broadcast({
+      type: "note",
+      text: `${oldName} changed to "${this.name}".`,
+    });
   }
 
   /** Connection was closed: leave room, announce exit to others. */
