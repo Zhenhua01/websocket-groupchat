@@ -76,25 +76,26 @@ class ChatUser {
     let msg = JSON.parse(jsonData);
 
     if (msg.type === "join") this.handleJoin(msg.name);
-    else if (msg.type === "chat") this.handleChat(msg.text)
-    else if (msg.type === "joke") this.handleJoke()
-    else if (msg.type === "members") this.handleMembers()
-    
+    else if (msg.type === "chat") this.handleChat(msg.text);
+    else if (msg.type === "joke") this.handleJoke();
+    else if (msg.type === "members") this.handleMembers();
+    else if (msg.type === "priv") this.handlePrivateMsg(msg.text);
+
     else throw new Error(`bad message: ${msg.type}`);
   }
 
-  /**
-   *
-   */
+  /** */
 
   handleJoke() {
     const joke = "this is a joke";
     this.send(JSON.stringify({
-      name: this.name,
+      name: "Server",
       type: "chat",
       text: joke
     }));
   }
+
+  /** */
 
   handleMembers() {
     let members = "In room:";
@@ -102,11 +103,37 @@ class ChatUser {
       members += ` ${member.name}`;
     }
     this.send(JSON.stringify({
-      name: this.name,
+      name: "Server",
       type: "chat",
       text: members
-    }))
-    
+    }));
+  }
+
+  /** */
+
+  handlePrivateMsg(text) {
+    const data = text.split(" ");
+    const toUsername = data[1];
+    const message = data.slice(2).join(" ");
+
+    let toUser;
+
+    for (let member of this.room.members) {
+      if (member.name === toUsername)
+        toUser = member;
+    }
+
+    toUser.send(JSON.stringify({
+      name: `PM from ${this.name}`,
+      type: "chat",
+      text: message
+    }));
+
+    this.send(JSON.stringify({
+      name: `You send PM to ${toUser.name}`,
+      type: "chat",
+      text: message
+    }));
   }
 
   /** Connection was closed: leave room, announce exit to others. */

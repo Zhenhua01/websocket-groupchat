@@ -66,6 +66,8 @@ $("form").submit(function (evt) {
     type = "joke"
   } else if ($text === "/members") {
     type = "members"
+  } else if ($text.includes("/priv")) {
+    type = "priv"
   }
 
   let data = { type: type, text: $("#m").val() };
