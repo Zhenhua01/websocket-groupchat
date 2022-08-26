@@ -76,9 +76,10 @@ class ChatUser {
     let msg = JSON.parse(jsonData);
 
     if (msg.type === "join") this.handleJoin(msg.name);
-    else if (msg.type === "chat") {
-      msg.text === "/joke" ? this.handleJoke() : this.handleChat(msg.text);
-    }
+    else if (msg.type === "chat") this.handleChat(msg.text)
+    else if (msg.type === "joke") this.handleJoke()
+    else if (msg.type === "members") this.handleMembers()
+    
     else throw new Error(`bad message: ${msg.type}`);
   }
 
@@ -93,6 +94,19 @@ class ChatUser {
       type: "chat",
       text: joke
     }));
+  }
+
+  handleMembers() {
+    let members = "In room:";
+    for (let member of this.room.members) {
+      members += ` ${member.name}`;
+    }
+    this.send(JSON.stringify({
+      name: this.name,
+      type: "chat",
+      text: members
+    }))
+    
   }
 
   /** Connection was closed: leave room, announce exit to others. */
