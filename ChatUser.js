@@ -5,7 +5,7 @@
 // Room is an abstraction of a chat channel
 const Room = require("./Room");
 
-const axios = require("axios")
+const axios = require("axios");
 
 /** ChatUser is a individual connection from client -> server to chat. */
 
@@ -83,22 +83,28 @@ class ChatUser {
     else if (msg.type === "members") this.handleMembers();
     else if (msg.type === "priv") this.handlePrivateMsg(msg.text);
     else if (msg.type === "name") this.handleNameChange(msg.text);
-    
     else throw new Error(`bad message: ${msg.type}`);
   }
 
   /** */
 
   async handleJoke() {
-    //FIXME: fix the api call to get a random joke
-    // const result = await axios.get('https://icanhazdadjoke.com/', {header: {Accept: "text/plain"}})
-    // const joke = result.data
-    const joke = "This is a joke"
-    this.send(JSON.stringify({
-      name: "Server",
-      type: "chat",
-      text: joke
-    }));
+    const result = await axios.get("https://icanhazdadjoke.com/", {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "websocket groupchat exercise",
+      },
+    });
+    console.log("result", result);
+    const joke = result.data.joke;
+    // const joke = "This is a joke"
+    this.send(
+      JSON.stringify({
+        name: "Server",
+        type: "chat",
+        text: joke,
+      })
+    );
   }
 
   /** */
@@ -108,11 +114,13 @@ class ChatUser {
     for (let member of this.room.members) {
       members += ` ${member.name}`;
     }
-    this.send(JSON.stringify({
-      name: "Server",
-      type: "chat",
-      text: members
-    }));
+    this.send(
+      JSON.stringify({
+        name: "Server",
+        type: "chat",
+        text: members,
+      })
+    );
   }
 
   /** */
@@ -125,27 +133,30 @@ class ChatUser {
     let toUser;
 
     for (let member of this.room.members) {
-      if (member.name === toUsername)
-        toUser = member;
+      if (member.name === toUsername) toUser = member;
     }
 
-    toUser.send(JSON.stringify({
-      name: `PM from ${this.name}`,
-      type: "chat",
-      text: message
-    }));
+    toUser.send(
+      JSON.stringify({
+        name: `PM from ${this.name}`,
+        type: "chat",
+        text: message,
+      })
+    );
 
-    this.send(JSON.stringify({
-      name: `You send PM to ${toUser.name}`,
-      type: "chat",
-      text: message
-    }));
+    this.send(
+      JSON.stringify({
+        name: `You send PM to ${toUser.name}`,
+        type: "chat",
+        text: message,
+      })
+    );
   }
 
-  handleNameChange (text){
+  handleNameChange(text) {
     const data = text.split(" ");
     const newUsername = data[1];
-    const oldName = this.name
+    const oldName = this.name;
     this.name = newUsername;
     this.room.broadcast({
       type: "note",
