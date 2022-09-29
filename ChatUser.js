@@ -86,7 +86,7 @@ class ChatUser {
     else throw new Error(`bad message: ${msg.type}`);
   }
 
-  /** */
+  /** Handle get joke: get a joke, send to this user only */
 
   async handleJoke() {
     const result = await axios.get("https://icanhazdadjoke.com/", {
@@ -95,9 +95,9 @@ class ChatUser {
         "User-Agent": "websocket groupchat exercise",
       },
     });
-    console.log("result", result);
+
     const joke = result.data.joke;
-    // const joke = "This is a joke"
+
     this.send(
       JSON.stringify({
         name: "Server",
@@ -107,7 +107,10 @@ class ChatUser {
     );
   }
 
-  /** */
+  /** Handle get room members:
+   * - gets all room members
+   * - send member names to this user only
+   */
 
   handleMembers() {
     let members = "In room:";
@@ -153,11 +156,15 @@ class ChatUser {
     );
   }
 
+  /** Handle changing a username: broadcast change to room. */
+
   handleNameChange(text) {
     const data = text.split(" ");
     const newUsername = data[1];
     const oldName = this.name;
+    
     this.name = newUsername;
+
     this.room.broadcast({
       type: "note",
       text: `${oldName} changed to "${this.name}".`,
